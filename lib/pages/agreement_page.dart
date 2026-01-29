@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/check_adult_page.dart';
 import 'package:flutter_application_1/widgets/circle_checkbox_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -10,8 +11,9 @@ class AgreementPage extends StatefulWidget {
 }
 
 class _AgreementPageState extends State<AgreementPage> {
-  bool _agree1 = false;
-  bool _agree2 = false;
+  bool _serviceAgree = false;
+  bool _privacyAgree = false;
+  bool _marketingAgree = false;
 
   @override
   void initState() {
@@ -25,7 +27,6 @@ class _AgreementPageState extends State<AgreementPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('build call!');
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: Text('회원가입'), backgroundColor: Colors.white),
@@ -64,13 +65,37 @@ class _AgreementPageState extends State<AgreementPage> {
               Divider(height: 10.w, color: Colors.grey.withValues(alpha: .4)),
               Row(
                 children: [
-                  Expanded(child: _buildAgree()),
+                  Expanded(
+                    child: _buildAgree('서비스 이용 약관(필수)', _serviceAgree, (v) {
+                      setState(() {
+                        _serviceAgree = v;
+                      });
+                    }),
+                  ),
                   Icon(Icons.chevron_right, color: Colors.black),
                 ],
               ),
               Row(
                 children: [
-                  Expanded(child: _buildAgreeCustom('동의합니다2')),
+                  Expanded(
+                    child: _buildAgree('개인정보처리방침(필수)', _privacyAgree, (v) {
+                      setState(() {
+                        _privacyAgree = v;
+                      });
+                    }),
+                  ),
+                  Icon(Icons.chevron_right, color: Colors.black),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAgree('마케팅활용방침(선택)', _marketingAgree, (v) {
+                      setState(() {
+                        _marketingAgree = v;
+                      });
+                    }),
+                  ),
                   Icon(Icons.chevron_right, color: Colors.black),
                 ],
               ),
@@ -83,23 +108,30 @@ class _AgreementPageState extends State<AgreementPage> {
   }
 
   Widget _buildNextButton() {
+    final enable = _serviceAgree && _privacyAgree;
     return SafeArea(
       top: false,
       child: SizedBox(
         height: 52.w,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
+            backgroundColor: enable ? Colors.green : Colors.grey.withAlpha(90),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(0),
             ),
             elevation: 0,
           ),
-          onPressed: () {},
+          onPressed: enable
+              ? () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => CheckAdultPage()));
+                }
+              : null,
           child: Text(
             '다음',
             style: TextStyle(
-              color: Colors.white,
+              color: enable ? Colors.white : Colors.black.withAlpha(70),
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
             ),
@@ -109,22 +141,14 @@ class _AgreementPageState extends State<AgreementPage> {
     );
   }
 
-  Widget _buildAgree() {
+  Widget _buildAgree(String label, bool value, ValueChanged onChanged) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Checkbox(
-          value: _agree1,
-          onChanged: (value) {
-            setState(() {});
-            _agree1 = value ?? false;
-          },
-          shape: CircleBorder(),
-        ),
-
+        Checkbox(value: value, onChanged: onChanged, shape: CircleBorder()),
         Expanded(
           child: Text(
-            '동의합니다1',
+            label,
             style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
           ),
         ),
@@ -138,10 +162,14 @@ class _AgreementPageState extends State<AgreementPage> {
       children: [
         SizedBox(width: 12.w),
         CircleCheckBox(
-          initialValue: _agree2,
+          initialValue: _serviceAgree && _privacyAgree && _marketingAgree,
           size: 18.w,
           onChanged: (v) {
-            _agree2 = v;
+            setState(() {
+              _serviceAgree = v;
+              _privacyAgree = v;
+              _marketingAgree = v;
+            });
           },
         ),
         SizedBox(width: 12.w),

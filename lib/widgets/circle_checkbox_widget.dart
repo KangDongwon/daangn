@@ -39,6 +39,7 @@ class _CircleCheckBoxState extends State<CircleCheckBox> {
 
   @override
   Widget build(BuildContext context) {
+    _value = widget.initialValue;
     final double boxSize = widget.size ?? 20.w;
     final Color active = widget.activeColor ?? Colors.green;
     final Color inactive = widget.inactiveColor ?? Colors.grey;
