@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/login_page.dart';
 import 'package:flutter_application_1/pages/select_profile_page.dart';
-import 'package:flutter_application_1/widgets/circle_checkbox_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CheckAdultPage extends StatefulWidget {
