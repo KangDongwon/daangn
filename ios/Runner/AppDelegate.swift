@@ -4,8 +4,10 @@ import UIKit
 
 @main
 @objc
-class AppDelegate: FlutterAppDelegate, PHPickerViewControllerDelegate,
-  UIImagePickerControllerDelegate, UINavigationControllerDelegate
+class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate,
+  PHPickerViewControllerDelegate,
+  UIImagePickerControllerDelegate,
+  UINavigationControllerDelegate
 {
 
   private var pendingResult: FlutterResult?
@@ -14,41 +16,78 @@ class AppDelegate: FlutterAppDelegate, PHPickerViewControllerDelegate,
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // ✅ 여기서는 super만 호출(공식 가이드 방향)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
 
-    // ✅ 기존 플러그인 등록 유지
-    GeneratedPluginRegistrant.register(with: self)
+  // ✅ UIScene 전환 후: 엔진이 준비되면 여기서 플러그인/채널 등록
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    // 1) 플러그인 등록
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-    // ✅ MethodChannel 등록
-    if let controller = self.window?.rootViewController as? FlutterViewController {
-      let channel = FlutterMethodChannel(
-        name: "native_image_picker",
-        binaryMessenger: controller.binaryMessenger
-      )
+    // 2) MethodChannel은 messenger로 생성 (공식 문서 방식)
+    let channel = FlutterMethodChannel(
+      name: "native_image_picker",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
 
-      channel.setMethodCallHandler { [weak self] call, result in
-        guard let self = self else { return }
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self = self else { return }
 
-        if self.pendingResult != nil {
-          result(FlutterError(code: "busy", message: "Picker already open", details: nil))
-          return
-        }
+      if self.pendingResult != nil {
+        result(FlutterError(code: "busy", message: "Picker already open", details: nil))
+        return
+      }
 
-        switch call.method {
-        case "pickFromGallery":
-          self.pendingResult = result
-          self.openGallery(from: controller)
+      // present할 VC는 “그때그때” 현재 화면에서 찾는다
+      guard let presenter = self.topViewController() else {
+        result(
+          FlutterError(code: "no_vc", message: "No UIViewController to present from", details: nil))
+        return
+      }
 
-        case "pickFromCamera":
-          self.pendingResult = result
-          self.openCamera(from: controller)
+      switch call.method {
+      case "pickFromGallery":
+        self.pendingResult = result
+        self.openGallery(from: presenter)
 
-        default:
-          result(FlutterMethodNotImplemented)
-        }
+      case "pickFromCamera":
+        self.pendingResult = result
+        self.openCamera(from: presenter)
+
+      default:
+        result(FlutterMethodNotImplemented)
       }
     }
+  }
 
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  private func topViewController() -> UIViewController? {
+    // iOS 13+ UIScene 환경에서 keyWindow를 찾아 rootVC 추출
+    if #available(iOS 13.0, *) {
+      let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+      for scene in scenes {
+        for window in scene.windows where window.isKeyWindow {
+          return topMost(from: window.rootViewController)
+        }
+      }
+      // fallback: 아무 window라도
+      for scene in scenes {
+        if let root = scene.windows.first?.rootViewController {
+          return topMost(from: root)
+        }
+      }
+      return nil
+    } else {
+      return topMost(from: UIApplication.shared.keyWindow?.rootViewController)
+    }
+  }
+
+  private func topMost(from root: UIViewController?) -> UIViewController? {
+    guard let root = root else { return nil }
+    if let nav = root as? UINavigationController { return topMost(from: nav.visibleViewController) }
+    if let tab = root as? UITabBarController { return topMost(from: tab.selectedViewController) }
+    if let presented = root.presentedViewController { return topMost(from: presented) }
+    return root
   }
 
   private func openGallery(from controller: UIViewController) {
@@ -69,7 +108,6 @@ class AppDelegate: FlutterAppDelegate, PHPickerViewControllerDelegate,
 
   private func openCamera(from controller: UIViewController) {
     guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-      // 시뮬레이터면 false일 수 있음
       pendingResult?(nil)
       pendingResult = nil
       return
@@ -106,7 +144,7 @@ class AppDelegate: FlutterAppDelegate, PHPickerViewControllerDelegate,
     }
   }
 
-  // MARK: - UIImagePicker (camera / iOS13 gallery)
+  // MARK: - UIImagePicker
   func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
     picker.dismiss(animated: true)
     pendingResult?(nil)
