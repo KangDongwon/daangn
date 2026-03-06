@@ -1,12 +1,15 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application_1/firebase_options.dart';
 import 'package:flutter_application_1/my_app.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   //각종 sdk 초기화
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // 화면 세로 고정
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

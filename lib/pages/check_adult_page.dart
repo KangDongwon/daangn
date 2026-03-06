@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/login_page.dart';
 import 'package:flutter_application_1/pages/select_profile_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CheckAdultPage extends StatefulWidget {
-  const CheckAdultPage({super.key});
+  const CheckAdultPage({super.key, required this.userModel});
+
+  final UserModel userModel;
 
   @override
   State<CheckAdultPage> createState() => _CheckAdultPagePageState();
@@ -80,9 +83,11 @@ class _CheckAdultPagePageState extends State<CheckAdultPage> {
       padding: EdgeInsets.symmetric(horizontal: 30.w),
       child: ElevatedButton(
         onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => SelectProfilePage()));
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SelectProfilePage(userModel: widget.userModel),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,

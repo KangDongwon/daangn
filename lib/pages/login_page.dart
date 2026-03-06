@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/agreement_page.dart';
+import 'package:flutter_application_1/services/auth_service.dart';
+import 'package:flutter_application_1/services/log.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LoginPage extends StatefulWidget {
@@ -10,6 +13,58 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
+
+  Future<void> _handleAnonymousLogin() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authUser = await _authService.signInAnonymously();
+      log(authUser.uid);
+      final userModel = UserModel(
+        id: authUser.uid,
+        marketingAgree: false,
+        nickname: '',
+        profileImageUrl: '',
+        address: '',
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => AgreementPage(userModel: userModel)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      print(e);
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('로그인 실패'),
+          content: Text('익명 로그인에 실패했습니다.\n$e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('확인'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 1.4.sp,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               _buildBubbleMessage(),
               SizedBox(height: 16.w),
               _SocialLoginButton(
@@ -43,11 +98,23 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: Colors.white,
                 borderColor: Colors.black,
                 textColor: Colors.black,
-                onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => AgreementPage()));
-                },
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AgreementPage(
+                              userModel: UserModel(
+                                id: '',
+                                marketingAgree: false,
+                                nickname: '',
+                                profileImageUrl: '',
+                                address: '',
+                              ),
+                            ),
+                          ),
+                        );
+                      },
               ),
               SizedBox(height: 12.w),
               _SocialLoginButton(
@@ -55,11 +122,42 @@ class _LoginPageState extends State<LoginPage> {
                 icon: Icon(Icons.apple, color: Colors.white, size: 24.w),
                 backgroundColor: Colors.black,
                 textColor: Colors.white,
-                onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => AgreementPage()));
-                },
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AgreementPage(
+                              userModel: UserModel(
+                                id: '',
+                                marketingAgree: false,
+                                nickname: '',
+                                profileImageUrl: '',
+                                address: '',
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+              ),
+              SizedBox(height: 12.w),
+              _SocialLoginButton(
+                text: _isLoading ? '로그인 중...' : '익명 로그인',
+                icon: _isLoading
+                    ? SizedBox(
+                        width: 24.w,
+                        height: 24.w,
+                        child: CircularProgressIndicator(strokeWidth: 2.w),
+                      )
+                    : Icon(
+                        Icons.person_outline,
+                        color: Colors.black,
+                        size: 24.w,
+                      ),
+                backgroundColor: Colors.grey.shade100,
+                borderColor: Colors.grey.shade400,
+                textColor: Colors.black,
+                onPressed: _isLoading ? null : _handleAnonymousLogin,
               ),
               SizedBox(height: 32.w),
             ],
@@ -86,7 +184,6 @@ class _LoginPageState extends State<LoginPage> {
               fontWeight: FontWeight.w500,
               color: Colors.green.shade800,
             ),
-            // textAlign: TextAlign.center,
           ),
         ),
       ],
@@ -109,7 +206,7 @@ class _SocialLoginButton extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final Color? borderColor;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {

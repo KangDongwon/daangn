@@ -1,12 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/user_model.dart';
+import 'package:flutter_application_1/pages/enter_nickname_page.dart';
+import 'package:flutter_application_1/services/log.dart';
 import 'package:flutter_application_1/services/native_image_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SelectProfilePage extends StatefulWidget {
-  const SelectProfilePage({super.key});
+  const SelectProfilePage({super.key, required this.userModel});
+
+  final UserModel userModel;
 
   @override
   State<SelectProfilePage> createState() => _SelectProfilePageState();
@@ -110,7 +115,6 @@ class _SelectProfilePageState extends State<SelectProfilePage> {
                 '예시',
                 style: TextStyle(color: Colors.black, fontSize: 16.sp),
               ),
-              SizedBox(height: 30.w),
               _buildExampleProfile(),
               SizedBox(height: 30.w),
               _buildTextBox(),
@@ -158,7 +162,87 @@ class _SelectProfilePageState extends State<SelectProfilePage> {
   }
 
   Widget _buildExampleProfile() {
-    return Row(children: []);
+    return Row(
+      children: [
+        Column(
+          children: [
+            Text(
+              'O',
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Container(
+              width: 95.w,
+              height: 100.w,
+              decoration: BoxDecoration(
+                border: BoxBorder.all(color: Colors.blue, width: 2.w),
+                color: Colors.grey.withAlpha(60),
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: AssetImage('assets/images/example_profile_1.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(width: 10.w),
+        Column(
+          children: [
+            Text(
+              'O',
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Container(
+              width: 95.w,
+              height: 100.w,
+              decoration: BoxDecoration(
+                border: BoxBorder.all(color: Colors.blue, width: 2.w),
+                color: Colors.grey.withAlpha(60),
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: AssetImage('assets/images/example_profile_2.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(width: 10.w),
+        Column(
+          children: [
+            Text(
+              'X',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Container(
+              width: 95.w,
+              height: 100.w,
+              decoration: BoxDecoration(
+                border: BoxBorder.all(color: Colors.red, width: 2.w),
+                color: Colors.grey.withAlpha(60),
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: AssetImage('assets/images/example_profile_3.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buildProfile() {
@@ -206,7 +290,17 @@ class _SelectProfilePageState extends State<SelectProfilePage> {
             ),
             elevation: 0,
           ),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => EnterNicknamePage(
+                  userModel: widget.userModel.copyWith(
+                    profileImageUrl: _profilePath,
+                  ),
+                ),
+              ),
+            );
+          },
           child: Text(
             '다음',
             style: TextStyle(

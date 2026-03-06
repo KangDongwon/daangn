@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/check_adult_page.dart';
+import 'package:flutter_application_1/services/log.dart';
 import 'package:flutter_application_1/widgets/circle_checkbox_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AgreementPage extends StatefulWidget {
-  const AgreementPage({super.key});
+  const AgreementPage({super.key, required this.userModel});
+
+  final UserModel userModel;
 
   @override
   State<AgreementPage> createState() => _AgreementPageState();
@@ -123,9 +127,15 @@ class _AgreementPageState extends State<AgreementPage> {
           ),
           onPressed: enable
               ? () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => CheckAdultPage()));
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CheckAdultPage(
+                        userModel: widget.userModel.copyWith(
+                          marketingAgree: _marketingAgree,
+                        ),
+                      ),
+                    ),
+                  );
                 }
               : null,
           child: Text(

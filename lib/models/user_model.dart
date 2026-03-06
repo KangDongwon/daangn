@@ -10,7 +10,7 @@ class UserModel {
   final String profileImageUrl;
   final String address;
 
-  UserModel({
+  const UserModel({
     required this.id,
     this.createdAt,
     this.updatedAt,
@@ -20,20 +20,20 @@ class UserModel {
     required this.address,
   });
 
-  /// Firestore → Model
-  factory UserModel.fromJson(Map<String, dynamic> json, String id) {
+  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final json = doc.data() ?? {};
+
     return UserModel(
-      id: id,
+      id: doc.id,
       createdAt: (json['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (json['updatedAt'] as Timestamp?)?.toDate(),
-      marketingAgree: json['marketingAgree'] ?? false,
-      nickname: json['nickname'] ?? '',
-      profileImageUrl: json['profileImageUrl'] ?? '',
-      address: json['address'] ?? '',
+      marketingAgree: json['marketingAgree'] as bool? ?? false,
+      nickname: json['nickname'] as String? ?? '',
+      profileImageUrl: json['profileImageUrl'] as String? ?? '',
+      address: json['address'] as String? ?? '',
     );
   }
 
-  /// 신규 생성용 (createdAt 서버타임스탬프)
   Map<String, dynamic> toCreateJson() {
     return {
       'createdAt': FieldValue.serverTimestamp(),
@@ -45,7 +45,18 @@ class UserModel {
     };
   }
 
-  /// 수정용 (updatedAt만 갱신)
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'marketingAgree': marketingAgree,
+      'nickname': nickname,
+      'profileImageUrl': profileImageUrl,
+      'address': address,
+    };
+  }
+
   Map<String, dynamic> toUpdateJson() {
     return {
       'updatedAt': FieldValue.serverTimestamp(),
@@ -57,15 +68,18 @@ class UserModel {
   }
 
   UserModel copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     bool? marketingAgree,
     String? nickname,
     String? profileImageUrl,
     String? address,
   }) {
     return UserModel(
-      id: id,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       marketingAgree: marketingAgree ?? this.marketingAgree,
       nickname: nickname ?? this.nickname,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
