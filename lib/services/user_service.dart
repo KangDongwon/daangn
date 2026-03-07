@@ -21,24 +21,22 @@ class UserService {
     String address = '',
   }) async {
     final ref = userDoc(uid);
+    final snap = await ref.get();
 
-    await _db.runTransaction((tx) async {
-      final snap = await tx.get(ref);
+    if (snap.exists) {
+      return UserModel.fromFirestore(snap);
+    }
 
-      if (!snap.exists) {
-        final model = UserModel(
-          id: uid,
-          marketingAgree: marketingAgree,
-          nickname: nickname,
-          profileImageUrl: profileImageUrl,
-          address: address,
-        );
+    final model = UserModel(
+      id: uid,
+      marketingAgree: marketingAgree,
+      nickname: nickname,
+      profileImageUrl: profileImageUrl,
+      address: address,
+    );
 
-        tx.set(ref, model.toCreateJson());
-      }
-    });
+    await ref.set(model.toCreateJson());
 
-    final savedSnap = await ref.get();
-    return UserModel.fromFirestore(savedSnap);
+    return model;
   }
 }
