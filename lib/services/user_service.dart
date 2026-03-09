@@ -39,4 +39,11 @@ class UserService {
 
     return model;
   }
+
+  Future<UserModel?> getUser(String uid) async {
+    final snap = await userDoc(uid).get();
+
+    if (!snap.exists) return null;
+    return UserModel.fromFirestore(snap);
+  }
 }
