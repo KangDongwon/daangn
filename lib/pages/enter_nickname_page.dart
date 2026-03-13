@@ -1,9 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user_model.dart';
-import 'package:flutter_application_1/pages/home_page.dart';
-import 'package:flutter_application_1/services/log.dart';
-import 'package:flutter_application_1/services/user_service.dart';
+import 'package:flutter_application_1/pages/enter_address_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EnterNicknamePage extends StatefulWidget {
@@ -23,13 +20,11 @@ class _EnterNicknamePageState extends State<EnterNicknamePage> {
 
   bool get _canNext => _isValidNickname(_nickname);
 
-  final UserService _userService = UserService();
-
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
+
+    _nicknameController.text = widget.userModel.nickname;
 
     _nicknameController.addListener(() {
       setState(() {});
@@ -57,67 +52,16 @@ class _EnterNicknamePageState extends State<EnterNicknamePage> {
 
   Future<void> _onNext() async {
     if (!_canNext) return;
-    if (_isLoading) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final userModel = widget.userModel.copyWith(
-        nickname: _nicknameController.text.trim(),
-      );
-
-      log(userModel, name: 'USER');
-
-      final savedUser = await _userService.createUserIfNotExists(
-        uid: userModel.id,
-        marketingAgree: userModel.marketingAgree,
-        nickname: userModel.nickname,
-        profileImageUrl: userModel.profileImageUrl,
-        address: userModel.address,
-      );
-
-      log(savedUser, name: 'USER');
-
-      if (!mounted) return;
-
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => HomePage()));
-    } on FirebaseException catch (e, s) {
-      log(e.toString(), name: 'ERROR');
-      log(s.toString(), name: 'ERROR');
-
-      if (!mounted) return;
-
-      String message = '유저 정보를 저장하지 못했습니다.';
-
-      switch (e.code) {
-        case 'permission-denied':
-          message = '권한이 없습니다. 다시 로그인 후 시도해 주세요.';
-          break;
-        case 'unavailable':
-          message = '일시적인 네트워크 오류입니다. 잠시 후 다시 시도해 주세요.';
-          break;
-        default:
-          message = '저장 중 오류가 발생했습니다.\n${e.message ?? e.code}';
-      }
-
-      await _showErrorDialog(message);
-    } catch (e, s) {
-      log(e.toString(), name: 'ERROR');
-      log(s.toString(), name: 'ERROR');
-
-      if (!mounted) return;
-      await _showErrorDialog('알 수 없는 오류가 발생했습니다.\n$e');
-    } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EnterAddressPage(
+          userModel: widget.userModel.copyWith(
+            nickname: _nicknameController.text.trim(),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -204,51 +148,22 @@ class _EnterNicknamePageState extends State<EnterNicknamePage> {
         height: 52.w,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: (_canNext && !_isLoading)
-                ? Colors.green
-                : Colors.grey.shade300,
+            backgroundColor: _canNext ? Colors.green : Colors.grey.shade300,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
             elevation: 0,
           ),
-          onPressed: (_canNext && !_isLoading) ? _onNext : null,
-          child: _isLoading
-              ? SizedBox(
-                  width: 20.w,
-                  height: 20.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.w,
-                    color: Colors.white,
-                  ),
-                )
-              : Text(
-                  '다음',
-                  style: TextStyle(
-                    color: (_canNext && !_isLoading)
-                        ? Colors.white
-                        : Colors.grey.shade400,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showErrorDialog(String message) async {
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('오류'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('확인'),
+          onPressed: _canNext ? _onNext : null,
+          child: Text(
+            '다음',
+            style: TextStyle(
+              color: _canNext ? Colors.white : Colors.grey.shade400,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,44 +1,44 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/models/user_model.dart';
+import 'package:flutter_application_1/pages/agreement_page.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/pages/login_page.dart';
-import 'package:flutter_application_1/services/user_service.dart';
+import 'package:flutter_application_1/providers/app_providers.dart';
 
-class UserGate extends StatelessWidget {
+class UserGate extends ConsumerWidget {
   const UserGate({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authUser = FirebaseAuth.instance.currentUser;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authUser = ref.watch(currentAuthUserProvider);
     if (authUser == null) {
       return const LoginPage();
     }
 
-    return FutureBuilder<UserModel?>(
-      future: UserService().getUser(authUser.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const _LoadingPage();
-        }
+    final userModelAsync = ref.watch(currentUserBootstrapProvider);
 
-        if (snapshot.hasError) {
-          return _ErrorPage(
-            onRetry: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const UserGate()),
-              );
-            },
-          );
-        }
-
-        final userModel = snapshot.data;
-
+    return userModelAsync.when(
+      loading: () => const _LoadingPage(),
+      error: (_, __) => _ErrorPage(
+        onRetry: () {
+          ref.invalidate(currentUserBootstrapProvider);
+        },
+      ),
+      data: (userModel) {
         if (userModel != null) {
-          return HomePage();
+          return HomePage(userModel: userModel);
         }
 
-        return const LoginPage();
+        return AgreementPage(
+          userModel: UserModel(
+            id: authUser.uid,
+            marketingAgree: false,
+            nickname: '',
+            profileImageUrl: '',
+            address: '',
+          ),
+        );
       },
     );
   }

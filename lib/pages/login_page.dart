@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/agreement_page.dart';
+import 'package:flutter_application_1/providers/app_providers.dart';
 import 'package:flutter_application_1/services/auth_service.dart';
 import 'package:flutter_application_1/services/log.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final AuthService _authService = AuthService();
-
+class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isLoading = false;
 
   Future<void> _handleAnonymousLogin() async {
@@ -25,7 +25,8 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final authUser = await _authService.signInAnonymously();
+      final AuthService authService = ref.read(authServiceProvider);
+      final authUser = await authService.signInAnonymously();
       log(authUser.uid);
       final userModel = UserModel(
         id: authUser.uid,

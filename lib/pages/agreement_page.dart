@@ -22,6 +22,7 @@ class _AgreementPageState extends State<AgreementPage> {
   @override
   void initState() {
     super.initState();
+    _marketingAgree = widget.userModel.marketingAgree;
   }
 
   @override

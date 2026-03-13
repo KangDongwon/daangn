@@ -13,31 +13,18 @@ class UserService {
   DocumentReference<Map<String, dynamic>> userDoc(String uid) =>
       _usersRef.doc(uid);
 
-  Future<UserModel> createUserIfNotExists({
-    required String uid,
-    bool marketingAgree = false,
-    String nickname = '',
-    String profileImageUrl = '',
-    String address = '',
-  }) async {
-    final ref = userDoc(uid);
+  Future<UserModel> saveUser(UserModel user) async {
+    final ref = userDoc(user.id);
     final snap = await ref.get();
 
     if (snap.exists) {
-      return UserModel.fromFirestore(snap);
+      await ref.update(user.toUpdateJson());
+    } else {
+      await ref.set(user.toCreateJson());
     }
 
-    final model = UserModel(
-      id: uid,
-      marketingAgree: marketingAgree,
-      nickname: nickname,
-      profileImageUrl: profileImageUrl,
-      address: address,
-    );
-
-    await ref.set(model.toCreateJson());
-
-    return model;
+    final savedSnap = await ref.get();
+    return UserModel.fromFirestore(savedSnap);
   }
 
   Future<UserModel?> getUser(String uid) async {
@@ -45,5 +32,12 @@ class UserService {
 
     if (!snap.exists) return null;
     return UserModel.fromFirestore(snap);
+  }
+
+  Stream<UserModel?> watchUser(String uid) {
+    return userDoc(uid).snapshots().map((snap) {
+      if (!snap.exists) return null;
+      return UserModel.fromFirestore(snap);
+    });
   }
 }

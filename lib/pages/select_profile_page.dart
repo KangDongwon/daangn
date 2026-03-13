@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/enter_nickname_page.dart';
 import 'package:flutter_application_1/services/log.dart';
 import 'package:flutter_application_1/services/native_image_picker.dart';
+import 'package:flutter_application_1/widgets/profile_image_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -27,6 +26,7 @@ class _SelectProfilePageState extends State<SelectProfilePage> {
     super.initState();
 
     _size = ScreenUtil().screenWidth / 2;
+    _profilePath = widget.userModel.profileImageUrl;
   }
 
   @override
@@ -249,30 +249,9 @@ class _SelectProfilePageState extends State<SelectProfilePage> {
     return GestureDetector(
       onTapDown: _storeTapPosition, // ⭐ 좌표 저장
       onTap: _showProfileMenu,
-      child: Container(
-        width: _size,
-        height: _size,
-        decoration: BoxDecoration(
-          color: Colors.grey.withAlpha(60),
-          shape: BoxShape.circle,
-          image: (_profilePath != null && _profilePath!.isNotEmpty)
-              ? DecorationImage(
-                  image: FileImage(File(_profilePath!)),
-                  fit: BoxFit.cover,
-                )
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: (_profilePath == null || _profilePath!.isEmpty)
-            ? Text(
-                '+',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 36.sp,
-                  fontWeight: FontWeight.w100,
-                ),
-              )
-            : null,
+      child: ProfileImageWidget(
+        path: _profilePath,
+        size: _size,
       ),
     );
   }
