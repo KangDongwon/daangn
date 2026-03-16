@@ -47,15 +47,10 @@ class StorageService {
     final uploadFile = await _compressToJpg(sourceFile);
 
     try {
-      await ref.putFile(
-        uploadFile,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
+      await ref.putFile(uploadFile, SettableMetadata(contentType: 'image/jpg'));
       return ref.getDownloadURL();
     } on FirebaseException catch (e) {
-      throw ProfileImageUploadException(
-        e.message ?? '프로필 이미지를 업로드하지 못했습니다.',
-      );
+      throw ProfileImageUploadException(e.message ?? '프로필 이미지를 업로드하지 못했습니다.');
     } catch (_) {
       throw const ProfileImageUploadException('프로필 이미지를 업로드하지 못했습니다.');
     }
@@ -75,9 +70,7 @@ class StorageService {
     );
 
     if (compressedFile == null) {
-      throw const ProfileImageConversionException(
-        '프로필 이미지를 JPG로 변환하지 못했습니다.',
-      );
+      throw const ProfileImageConversionException('프로필 이미지를 JPG로 변환하지 못했습니다.');
     }
 
     return File(compressedFile.path);
