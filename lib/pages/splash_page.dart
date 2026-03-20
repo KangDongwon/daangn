@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/agreement_page.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
@@ -158,8 +157,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
           children: [
             ScaleTransition(
               scale: _scaleAnimation,
-              child: SvgPicture.asset(
-                'assets/images/daangn_study_logo.svg',
+              child: Image.asset(
+                'assets/images/daangn_study_logo.png',
                 width: 138,
                 height: 138,
               ),
