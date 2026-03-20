@@ -1,78 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/providers/app_providers.dart';
 import 'package:flutter_application_1/widgets/profile_image_widget.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.userModel});
-
-  final UserModel userModel;
+class HomePage extends ConsumerWidget {
+  const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userModelAsync = ref.watch(currentUserModelProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
         automaticallyImplyLeading: false,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              '홈 화면 입니다.',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: userModelAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Text(
+              '유저 정보를 불러오지 못했습니다.\n$error',
+              textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24.w),
-            Center(
-              child: _HomeProfileImage(
-                initialProfileImageUrl: userModel.profileImageUrl,
-              ),
-            ),
-            SizedBox(height: 24.w),
-            _InfoRow(label: 'uid', value: userModel.id),
-            _InfoRow(label: 'nickname', value: userModel.nickname),
-            _InfoRow(label: 'address', value: userModel.address),
-            _InfoRow(
-              label: 'marketingAgree',
-              value: userModel.marketingAgree.toString(),
-            ),
-            _InfoRow(
-              label: 'profileImageUrl',
-              value: userModel.profileImageUrl.isEmpty
-                  ? '(empty)'
-                  : userModel.profileImageUrl,
-            ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-}
+        data: (user) {
+          if (user == null) {
+            return const Center(child: Text('유저 정보가 없습니다.'));
+          }
 
-class _HomeProfileImage extends ConsumerWidget {
-  const _HomeProfileImage({required this.initialProfileImageUrl});
-
-  final String initialProfileImageUrl;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profileImageUrl = ref.watch(
-      currentUserModelProvider.select(
-        (asyncUser) => asyncUser.valueOrNull?.profileImageUrl,
-      ),
-    );
-
-    return ProfileImageWidget(
-      path: profileImageUrl ?? initialProfileImageUrl,
-      size: 140.w,
-      emptyChild: Icon(
-        Icons.person_outline,
-        size: 42.w,
-        color: Colors.grey.shade600,
+          return Padding(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '홈 화면 입니다.',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                SizedBox(height: 24.w),
+                Center(
+                  child: ProfileImageWidget(
+                    path: user.profileImageUrl,
+                    size: 140.w,
+                    emptyChild: Icon(
+                      Icons.person_outline,
+                      size: 42.w,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24.w),
+                _InfoRow(label: 'uid', value: user.id),
+                _InfoRow(label: 'nickname', value: user.nickname),
+                _InfoRow(label: 'address', value: user.address),
+                _InfoRow(
+                  label: 'marketingAgree',
+                  value: user.marketingAgree.toString(),
+                ),
+                _InfoRow(
+                  label: 'profileImageUrl',
+                  value: user.profileImageUrl.isEmpty
+                      ? '(empty)'
+                      : user.profileImageUrl,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

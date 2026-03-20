@@ -33,10 +33,3 @@ final currentUserModelProvider = StreamProvider<UserModel?>((ref) {
 
   return ref.watch(userServiceProvider).watchUser(authUser.uid);
 });
-
-final currentUserBootstrapProvider = FutureProvider<UserModel?>((ref) async {
-  final authUser = ref.watch(currentAuthUserProvider);
-  if (authUser == null) return null;
-
-  return ref.read(userServiceProvider).getUser(authUser.uid);
-});

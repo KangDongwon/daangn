@@ -89,7 +89,7 @@ class _EnterAddressPageState extends ConsumerState<EnterAddressPage> {
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => HomePage(userModel: savedUser)),
+        MaterialPageRoute(builder: (_) => const HomePage()),
         (route) => false,
       );
     } on ProfileImageConversionException catch (e, s) {

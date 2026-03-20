@@ -1,31 +1,39 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_application_1/models/user_model.dart';
 import 'package:flutter_application_1/pages/agreement_page.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/pages/login_page.dart';
-import 'package:flutter_application_1/providers/app_providers.dart';
+import 'package:flutter_application_1/services/user_service.dart';
 
-class UserGate extends ConsumerWidget {
-  const UserGate({super.key});
+class UserGateOldst extends StatelessWidget {
+  const UserGateOldst({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authUser = ref.watch(currentAuthUserProvider);
+  Widget build(BuildContext context) {
+    final authUser = FirebaseAuth.instance.currentUser;
     if (authUser == null) {
       return const LoginPage();
     }
 
-    final userModelAsync = ref.watch(currentUserModelProvider);
+    return StreamBuilder<UserModel?>(
+      stream: UserService().watchUser(authUser.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const _LoadingPage();
+        }
 
-    return userModelAsync.when(
-      loading: () => const _LoadingPage(),
-      error: (_, __) => _ErrorPage(
-        onRetry: () {
-          ref.invalidate(currentUserModelProvider);
-        },
-      ),
-      data: (userModel) {
+        if (snapshot.hasError) {
+          return _ErrorPage(
+            onRetry: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const UserGateOldst()),
+              );
+            },
+          );
+        }
+
+        final userModel = snapshot.data;
         if (userModel != null) {
           return const HomePage();
         }
