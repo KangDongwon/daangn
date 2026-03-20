@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/widgets/auth_gate.dart';
+import 'package:flutter_application_1/pages/splash_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Pretendard',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: AuthGate(),
+      home: const SplashPage(),
     );
   }
 }
